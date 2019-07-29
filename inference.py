@@ -37,7 +37,7 @@ from keras.utils.data_utils import get_file
 # except ImportError as ex:
 #   root_dir = os.path.expandvars('$HOME/Desktop/programming/ml/tacotron2-waveflow/')
 
-root_dir = '.'
+root_dir = '/content/tts-inference-test'
 device = 'cpu'
 fp16 = not True
 if fp16:

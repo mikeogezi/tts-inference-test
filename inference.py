@@ -23,6 +23,9 @@ pip install numpy scipy librosa unidecode inflect librosa
 
 import torch
 import os
+from keras.utils.data_utils import get_file
+from IPython.display import display, Audio
+
 import sys
 sys.path.append(os.path.abspath('.'))
 sys.dont_write_bytecode = True
@@ -30,26 +33,27 @@ sys.dont_write_bytecode = True
 import numpy as np
 from scipy.io.wavfile import write
 from keras.utils.data_utils import get_file
-# try:
-#   from google.colab import drive
-#   drive.mount('/content/gdrive')
-#   root_dir = '/content/gdrive/My Drive'
-# except ImportError as ex:
-#   root_dir = os.path.expandvars('$HOME/Desktop/programming/ml/tacotron2-waveflow/')
+try:
+  from google.colab import drive
+  root_dir = '/content/tts-inference-test/'
+  # drive.mount('/content/gdrive')
+  # root_dir = '/content/gdrive/My Drive'
+except ImportError as ex:
+  root_dir = os.path.expandvars('$HOME/Desktop/programming/ml/pytorch/waveglow/tts-inference-test/')
 
-root_dir = '/content/tts-inference-test'
 device = 'cpu'
-fp16 = not True
+fp16 = False
+trained_dir = os.path.join(root_dir, 'trained_models')
 if fp16:
-  waveglow_path = os.path.join(root_dir, 'joc-waveglow-fp16-pyt-20190306')
-  tacotron2_path = os.path.join(root_dir, 'joc-tacotron2-fp16-pyt-20190306')
+  waveglow_path = os.path.join(trained_dir, 'joc-waveglow-fp16-pyt-20190306')
+  tacotron2_path = os.path.join(trained_dir, 'joc-tacotron2-fp16-pyt-20190306')
   if not os.path.exists(waveglow_path):
     get_file(waveglow_path, 'https://developer.nvidia.com/joc-waveglow-fp16-pyt-20190306')
   if not os.path.exists(tacotron2_path):
     get_file(tacotron2_path, 'https://developer.nvidia.com/joc-tacotron2-fp16-pyt-20190306')
 else:
-  waveglow_path = os.path.join(root_dir, 'joc-waveglow-fp32-pyt-20190306')
-  tacotron2_path = os.path.join(root_dir, 'joc-tacotron2-fp32-pyt-20190306')
+  waveglow_path = os.path.join(trained_dir, 'joc-waveglow-fp32-pyt-20190306')
+  tacotron2_path = os.path.join(trained_dir, 'joc-tacotron2-fp32-pyt-20190306')
   if not os.path.exists(waveglow_path):
     get_file(waveglow_path, 'https://developer.nvidia.com/joc-waveglow-fp32-pyt-20190306')
   if not os.path.exists(tacotron2_path):
@@ -170,23 +174,46 @@ tacotron2 = load_tacotron2()
 tacotron2 = tacotron2.to(device)
 tacotron2.eval()
 
-'''Now, let's make the model say `hello world, I missed you`'''
-text = "hello world, I missed you"
+sentences = [
+  # From July 8, 2017 New York Times:
+  'Scientists at the CERN laboratory say they have discovered a new particle.',
+  'There\'s a way to measure the acute emotional intelligence that has never gone out of style.',
+  'President Trump met with other leaders at the Group of 20 conference.',
+  'The Senate\'s bill to repeal and replace the Affordable Care Act is now imperiled.',
+  # From Google's Tacotron example page:
+  'Generative adversarial network or variational auto-encoder.',
+  'Basilar membrane and otolaryngology are not auto-correlations.',
+  'He has read the whole thing.',
+  'He reads books.',
+  'He thought it was time to present the present.',
+  'Thisss isrealy awhsome.',
+  'Punctuation sensitivity, is working.',
+  'Punctuation sensitivity is working.',
+  "Peter Piper picked a peck of pickled peppers. How many pickled peppers did Peter Piper pick?",
+  "She sells sea-shells on the sea-shore. The shells she sells are sea-shells I'm sure.",
+  "Tajima Airport serves Toyooka.",
+  # A final Thank you note!
+  'Thank you so much for your support!',
+]
 
+'''Now, let's make the model synthesize some speech'''
 '''Now chain pre-processing -> tacotron2 -> waveglow'''
-sequence = np.array(tacotron2.text_to_sequence(text, ['english_cleaners']))[None, :]
-sequence = torch.from_numpy(sequence).to(device=device, dtype=torch.int64)
+for i, sent in enumerate(sentences):
+  sequence = np.array(tacotron2.text_to_sequence(sent, ['english_cleaners']))[None, :]
+  sequence = torch.from_numpy(sequence).to(device=device, dtype=torch.int64)
 
-# run the models
-with torch.no_grad():
-    _, mel, _, _ = tacotron2.infer(sequence)
-    audio = waveglow.infer(mel)
-audio_numpy = audio[0].data.cpu().numpy()
-rate = 22050
+  print 'Synthesizing audio for Sentence {i}'.format(i=i)
+  print 'Sentence: `{sent}`'.format(sent=sent)
+  # run the models
+  with torch.no_grad():
+      _, mel, _, _ = tacotron2.infer(sequence)
+      audio = waveglow.infer(mel)
+  audio_numpy = audio[0].data.cpu().numpy()
+  rate = 22050
 
-'''You can write it to a file and listen to it'''
-write("audio.wav", rate, audio_numpy)
+  '''You can write it to a file and listen to it'''
+  write("audio_{i}.wav".format(i=i), rate, audio_numpy)
 
-'''Alternatively, play it right away in a notebook with IPython widgets'''
-from IPython.display import Audio
-Audio(audio_numpy, rate=rate)
+  '''Alternatively, play it right away in a notebook with IPython widgets'''
+  from IPython.display import Audio
+  Audio(audio_numpy, rate=rate)

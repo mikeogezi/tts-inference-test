@@ -251,8 +251,7 @@ class Decoder(nn.Module):
                  attention_rnn_dim, decoder_rnn_dim,
                  prenet_dim, max_decoder_steps, gate_threshold,
                  p_attention_dropout, p_decoder_dropout,
-                 early_stopping, device='cuda'):
-        print device
+                 early_stopping, device):
         super(Decoder, self).__init__()
         self.n_mel_channels = n_mel_channels
         self.n_frames_per_step = n_frames_per_step
@@ -529,6 +528,7 @@ class Tacotron2(nn.Module):
                  p_attention_dropout, p_decoder_dropout,
                  postnet_embedding_dim, postnet_kernel_size,
                  postnet_n_convolutions, decoder_no_early_stopping, device):
+        print device
         super(Tacotron2, self).__init__()
         self.mask_padding = mask_padding
         self.n_mel_channels = n_mel_channels

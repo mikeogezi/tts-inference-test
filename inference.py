@@ -30,6 +30,7 @@ import sys
 sys.path.append(os.path.abspath('.'))
 sys.dont_write_bytecode = True
 
+from timeit import default_timer as timer
 import numpy as np
 from scipy.io.wavfile import write
 from keras.utils.data_utils import get_file
@@ -117,8 +118,9 @@ def load_tacotron2 (fp16=fp16, device=device):
   if checkpoint_from_distributed(state_dict):
     state_dict = unwrap_distributed(state_dict)
   config = ckpt['config']
+  config['device'] = device
 
-  m = tacotron2.Tacotron2(**config, device=device)
+  m = tacotron2.Tacotron2(**config)
 
   if fp16:
     m = batchnorm_to_float(m.half())
@@ -162,17 +164,21 @@ def load_waveglow (fp16=fp16):
   return m
 
 
+t_start = timer()
+'''Load tacotron2'''
+tacotron2 = load_tacotron2()
+tacotron2 = tacotron2.to(device)
+tacotron2.eval()
+print 'Tacotron2 Load Time: {}'.format(timer() - t_start)
+
+w_start = timer()
 '''Prepare the waveglow model for inference'''
 waveglow = load_waveglow()
 if not fp16:
   waveglow = waveglow.remove_weightnorm(waveglow)
 waveglow = waveglow.to(device)
 waveglow.eval()
-
-'''Load tacotron2'''
-tacotron2 = load_tacotron2(device=device)
-tacotron2 = tacotron2.to(device)
-tacotron2.eval()
+print 'WaveGlow Load Time: {}'.format(timer() - w_start)
 
 sentences = [
   # From July 8, 2017 New York Times:
@@ -204,10 +210,12 @@ for i, sent in enumerate(sentences):
 
   print 'Synthesizing audio for Sentence {i}'.format(i=i)
   print 'Sentence: `{sent}`'.format(sent=sent)
+  start = timer()
   # run the models
   with torch.no_grad():
       _, mel, _, _ = tacotron2.infer(sequence)
       audio = waveglow.infer(mel)
+  print 'Inference Time: {time}'.format(time=timer() - start)
   audio_numpy = audio[0].data.cpu().numpy()
   rate = 22050
 

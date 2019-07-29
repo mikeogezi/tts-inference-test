@@ -29,18 +29,28 @@ sys.dont_write_bytecode = True
 
 import numpy as np
 from scipy.io.wavfile import write
+from keras.utils.data_utils import get_file
+# try:
+#   from google.colab import drive
+#   drive.mount('/content/gdrive')
+#   root_dir = '/content/gdrive/My Drive'
+# except ImportError as ex:
+#   root_dir = os.path.expandvars('$HOME/Desktop/programming/ml/tacotron2-waveflow/')
 
-try:
-  from google.colab import drive
-  drive.mount('/content/gdrive')
-  root_dir = '/content/gdrive/My Drive'
-except ImportError as ex:
-  root_dir = os.path.expandvars('$HOME/Desktop/programming/ml/tacotron2-waveflow/')
-
+root_dir = '.'
 device = 'cpu'
-fp16 = True
-waveglow_path = os.path.join(root_dir, 'joc-waveglow-fp16-pyt-20190306')
-tacotron2_path = os.path.join(root_dir, 'joc-tacotron2-fp16-pyt-20190306')
+fp16 = not True
+if fp16:
+  waveglow_path = os.path.join(root_dir, 'joc-waveglow-fp16-pyt-20190306')
+  tacotron2_path = os.path.join(root_dir, 'joc-tacotron2-fp16-pyt-20190306')
+  get_file(waveglow_path, 'https://developer.nvidia.com/joc-waveglow-fp16-pyt-20190306')
+  get_file(tacotron2_path, 'https://developer.nvidia.com/joc-tacotron2-fp16-pyt-20190306')
+else:
+  waveglow_path = os.path.join(root_dir, 'joc-waveglow-fp32-pyt-20190306')
+  tacotron2_path = os.path.join(root_dir, 'joc-tacotron2-fp32-pyt-20190306')
+  get_file(waveglow_path, 'https://developer.nvidia.com/joc-waveglow-fp32-pyt-20190306')
+  get_file(tacotron2_path, 'https://developer.nvidia.com/joc-tacotron2-fp32-pyt-20190306')
+
 
 # from https://github.com/NVIDIA/DeepLearningExamples/blob/master/PyTorch/SpeechSynthesis/Tacotron2/inference.py
 def checkpoint_from_distributed(state_dict):

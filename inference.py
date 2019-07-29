@@ -92,7 +92,7 @@ def unwrap_distributed(state_dict):
     return new_state_dict
 
 
-def load_tacotron2 (fp16=fp16):
+def load_tacotron2 (fp16=fp16, device=device):
   '''Constructs a Tacotron 2 model (nn.module with additional infer(input) method).
     For detailed information on model input and output, training recipies, inference and performance
     visit: github.com/NVIDIA/DeepLearningExamples and/or ngc.nvidia.com
@@ -118,7 +118,7 @@ def load_tacotron2 (fp16=fp16):
     state_dict = unwrap_distributed(state_dict)
   config = ckpt['config']
 
-  m = tacotron2.Tacotron2(**config)
+  m = tacotron2.Tacotron2(**config, device=device)
 
   if fp16:
     m = batchnorm_to_float(m.half())
@@ -170,7 +170,7 @@ waveglow = waveglow.to(device)
 waveglow.eval()
 
 '''Load tacotron2'''
-tacotron2 = load_tacotron2()
+tacotron2 = load_tacotron2(device=device)
 tacotron2 = tacotron2.to(device)
 tacotron2.eval()
 

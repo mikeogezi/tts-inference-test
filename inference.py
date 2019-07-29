@@ -31,6 +31,7 @@ sys.path.append(os.path.abspath('.'))
 sys.dont_write_bytecode = True
 
 from timeit import default_timer as timer
+from time import time
 import numpy as np
 from scipy.io.wavfile import write
 from keras.utils.data_utils import get_file
@@ -180,6 +181,32 @@ waveglow = waveglow.to(device)
 waveglow.eval()
 print 'WaveGlow Load Time: {}'.format(timer() - w_start)
 
+def synthsize_sents(sentences):
+  '''Now, let's make the model synthesize some speech'''
+  '''Now chain pre-processing -> tacotron2 -> waveglow'''
+  for i, sent in enumerate(sentences):
+    sequence = np.array(tacotron2.text_to_sequence(sent, ['english_cleaners']))[None, :]
+    sequence = torch.from_numpy(sequence).to(device=device, dtype=torch.int64)
+
+    print 'Synthesizing audio for Sentence {i}'.format(i=i)
+    print 'Sentence: `{sent}`'.format(sent=sent)
+    start = timer()
+    # run the models
+    with torch.no_grad():
+        _, mel, _, _ = tacotron2.infer(sequence)
+        audio = waveglow.infer(mel)
+    print 'Inference Time: {time}'.format(time=timer() - start)
+    audio_numpy = audio[0].data.cpu().numpy()
+    rate = 22050
+
+    '''You can write it to a file and listen to it'''
+    write("audio_{i}_{time}.wav".format(i=i, time=int(time())), rate, audio_numpy)
+
+    '''Alternatively, play it right away in a notebook with IPython widgets'''
+    from IPython.display import Audio
+    display(Audio(audio_numpy, rate=rate))
+
+
 sentences = [
   # From July 8, 2017 New York Times:
   'Scientists at the CERN laboratory say they have discovered a new particle.',
@@ -202,26 +229,4 @@ sentences = [
   'Thank you so much for your support!',
 ]
 
-'''Now, let's make the model synthesize some speech'''
-'''Now chain pre-processing -> tacotron2 -> waveglow'''
-for i, sent in enumerate(sentences):
-  sequence = np.array(tacotron2.text_to_sequence(sent, ['english_cleaners']))[None, :]
-  sequence = torch.from_numpy(sequence).to(device=device, dtype=torch.int64)
-
-  print 'Synthesizing audio for Sentence {i}'.format(i=i)
-  print 'Sentence: `{sent}`'.format(sent=sent)
-  start = timer()
-  # run the models
-  with torch.no_grad():
-      _, mel, _, _ = tacotron2.infer(sequence)
-      audio = waveglow.infer(mel)
-  print 'Inference Time: {time}'.format(time=timer() - start)
-  audio_numpy = audio[0].data.cpu().numpy()
-  rate = 22050
-
-  '''You can write it to a file and listen to it'''
-  write("audio_{i}.wav".format(i=i), rate, audio_numpy)
-
-  '''Alternatively, play it right away in a notebook with IPython widgets'''
-  from IPython.display import Audio
-  Audio(audio_numpy, rate=rate)
+synthsize_sents(sentences)

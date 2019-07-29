@@ -527,8 +527,8 @@ class Tacotron2(nn.Module):
                  decoder_rnn_dim, prenet_dim, max_decoder_steps, gate_threshold,
                  p_attention_dropout, p_decoder_dropout,
                  postnet_embedding_dim, postnet_kernel_size,
-                 postnet_n_convolutions, decoder_no_early_stopping, device):
-        print device
+                 postnet_n_convolutions, decoder_no_early_stopping, device='cuda'):
+        print('Using {} for Tacotron2'.format(device))
         super(Tacotron2, self).__init__()
         self.mask_padding = mask_padding
         self.n_mel_channels = n_mel_channels

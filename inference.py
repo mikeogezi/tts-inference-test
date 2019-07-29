@@ -39,7 +39,7 @@ from keras.utils.data_utils import get_file
 
 root_dir = '/content/tts-inference-test'
 device = 'cuda'
-fp16 = not True
+fp16 = True
 if fp16:
   waveglow_path = os.path.join(root_dir, 'joc-waveglow-fp16-pyt-20190306')
   tacotron2_path = os.path.join(root_dir, 'joc-tacotron2-fp16-pyt-20190306')

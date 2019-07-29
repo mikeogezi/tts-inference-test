@@ -251,7 +251,8 @@ class Decoder(nn.Module):
                  attention_rnn_dim, decoder_rnn_dim,
                  prenet_dim, max_decoder_steps, gate_threshold,
                  p_attention_dropout, p_decoder_dropout,
-                 early_stopping, device):
+                 early_stopping, device='cuda'):
+        print device
         super(Decoder, self).__init__()
         self.n_mel_channels = n_mel_channels
         self.n_frames_per_step = n_frames_per_step

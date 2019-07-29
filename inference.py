@@ -43,13 +43,17 @@ fp16 = not True
 if fp16:
   waveglow_path = os.path.join(root_dir, 'joc-waveglow-fp16-pyt-20190306')
   tacotron2_path = os.path.join(root_dir, 'joc-tacotron2-fp16-pyt-20190306')
-  get_file(waveglow_path, 'https://developer.nvidia.com/joc-waveglow-fp16-pyt-20190306')
-  get_file(tacotron2_path, 'https://developer.nvidia.com/joc-tacotron2-fp16-pyt-20190306')
+  if not os.path.exists(waveglow_path):
+    get_file(waveglow_path, 'https://developer.nvidia.com/joc-waveglow-fp16-pyt-20190306')
+  if not os.path.exists(tacotron2_path):
+    get_file(tacotron2_path, 'https://developer.nvidia.com/joc-tacotron2-fp16-pyt-20190306')
 else:
   waveglow_path = os.path.join(root_dir, 'joc-waveglow-fp32-pyt-20190306')
   tacotron2_path = os.path.join(root_dir, 'joc-tacotron2-fp32-pyt-20190306')
-  get_file(waveglow_path, 'https://developer.nvidia.com/joc-waveglow-fp32-pyt-20190306')
-  get_file(tacotron2_path, 'https://developer.nvidia.com/joc-tacotron2-fp32-pyt-20190306')
+  if not os.path.exists(waveglow_path):
+    get_file(waveglow_path, 'https://developer.nvidia.com/joc-waveglow-fp32-pyt-20190306')
+  if not os.path.exists(tacotron2_path):
+    get_file(tacotron2_path, 'https://developer.nvidia.com/joc-tacotron2-fp32-pyt-20190306')
 
 
 # from https://github.com/NVIDIA/DeepLearningExamples/blob/master/PyTorch/SpeechSynthesis/Tacotron2/inference.py
